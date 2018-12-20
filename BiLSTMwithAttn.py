@@ -33,6 +33,7 @@ class Attn(nn.Module):
 class BiLSTMwithAttn(nn.Module):
     def __init__(self,V,D,hidden_dim=150,num_layers=2,class_nums,attn_method='basic',attn_dim=196):
         super(BiLSTMwithAttn,self).__init__()
+        self.class_nums = class_nums
         self.embedding = nn.Embedding(V,D)
         self.emb_dropout = nn.Dropout(p=0.3,inplace=True)
         self.encoder = nn.LSTM(D,
@@ -44,7 +45,7 @@ class BiLSTMwithAttn(nn.Module):
         if class_nums ==2:
             self.predictor = nn.Linear(hidden_dim*2,1)
         else:
-            self.predictor = nn.Linear(hidden_dim*2,1)
+            self.predictor = nn.Linear(hidden_dim*2,class_nums)
     def forward(self, seq):
         seq = self.embedding(seq)
         self.emb_dropout(seq)
