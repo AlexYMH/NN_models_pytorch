@@ -12,6 +12,7 @@ import torch.nn.functional as F
                      ‘simple': 直接将各个hidden转换为一个scalar
                      ‘complex': 先将hidden映射到另一个向量空间，然后计算它与一个单词上下文向量u的相似度,最后得到这个scalar
         attn_dim: (int) 注意力空间的dim
+        class_nums: (int)类别个数
 '''
 class Attn(nn.Module):
     def __init__(self,hidden_dim,attn_dim,attn_method):
@@ -30,7 +31,7 @@ class Attn(nn.Module):
         attn_weights = F.softmax(energy.squeeze(2),dim=1).unsqueeze(1)
         return attn_weights # shape: (batch,1,len)
 class BiLSTMwithAttn(nn.Module):
-    def __init__(self,V,D,hidden_dim=150,num_layers=2,attn_method='basic',attn_dim=196):
+    def __init__(self,V,D,hidden_dim=150,num_layers=2,class_nums,attn_method='basic',attn_dim=196):
         super(BiLSTMwithAttn,self).__init__()
         self.embedding = nn.Embedding(V,D)
         self.emb_dropout = nn.Dropout(p=0.3,inplace=True)
@@ -40,7 +41,10 @@ class BiLSTMwithAttn(nn.Module):
                                bidirectional=True,
                                dropout=0.5)
         self.attn = Attn(hidden_dim*2,attn_dim,attn_method)
-        self.predictor = nn.Linear(hidden_dim*2,3)
+        if class_nums ==2:
+            self.predictor = nn.Linear(hidden_dim*2,1)
+        else:
+            self.predictor = nn.Linear(hidden_dim*2,1)
     def forward(self, seq):
         seq = self.embedding(seq)
         self.emb_dropout(seq)
@@ -48,4 +52,7 @@ class BiLSTMwithAttn(nn.Module):
         attn_weigths = self.attn(hiddens.transpose(0,1))    # shape: (batch,1,len)
         contexts = attn_weigths.bmm(hiddens.transpose(0,1)) # shape: (batch,1,hidden_dim)
         preds = self.predictor(contexts.squeeze(1))
-        return F.log_softmax(preds)
+        if self.class_nums==2:
+            return F.sigmoid(preds)
+        else:
+            return F.log_softmax(preds)
