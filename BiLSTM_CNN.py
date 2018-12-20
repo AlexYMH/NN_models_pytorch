@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch.nn.functional as F
 '''
-    @model: BiLSTM
+    @model: BiLSTM_CNN
     @params:
         V: (int)vocab_size
         D: (int)embedding_dim
