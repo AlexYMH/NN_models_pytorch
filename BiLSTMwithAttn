@@ -29,9 +29,9 @@ class Attn(nn.Module):
             energy = energy.matmul(self.u)
         attn_weights = F.softmax(energy.squeeze(2),dim=1).unsqueeze(1)
         return attn_weights # shape: (batch,1,len)
-class BiLSTMandAttn(nn.Module):
+class BiLSTMwithAttn(nn.Module):
     def __init__(self,V,D,hidden_dim=150,num_layers=2,attn_method='basic',attn_dim=196):
-        super(BiLSTMandAttn,self).__init__()
+        super(BiLSTMwithAttn,self).__init__()
         self.embedding = nn.Embedding(V,D)
         self.emb_dropout = nn.Dropout(p=0.3,inplace=True)
         self.encoder = nn.LSTM(D,
